@@ -41,17 +41,59 @@ export default function Page() {
     setEditData({ ...job });
   };
 
-  const handleChange = (field: keyof Job, value: string) => {
-    if (!editData) return;
-    setEditData({ ...editData, [field]: value });
-  };
-
   const saveEdit = () => {
     if (!editData) return;
     setJobs(jobs.map((j) => (j.id === editData.id ? editData : j)));
     setEditingId(null);
     setEditData(null);
   };
+
+const handleChange = (field: keyof Job, value: string) => {
+  if (!editData) return;
+
+  let updated = { ...editData, [field]: value };
+
+  if (field === "date" && value) {
+    const d = new Date(value);
+
+    if (!isNaN(d.getTime())) {
+      d.setDate(d.getDate() + 4);
+      const dead = d.toISOString().slice(0, 10);
+      updated.dead = dead;
+    }
+  }
+
+  setEditData(updated);
+};
+
+const isExpiredRow = (job: Job) => {
+  const target = editingId === job.id && editData ? editData : job;
+
+  if (!target.dead) return false;
+  if (target.interview) return false;
+
+  const today = new Date();
+  const dead = new Date(target.dead);
+  return today > dead;
+};
+
+const handleSave = () => {
+  if (!editData) return;
+
+  setJobs(prev =>
+    prev.map(job =>
+      job.id === editData.id ? editData : job
+    )
+  );
+
+  setEditingId(null);
+  setEditData(null);
+};
+
+const handleEdit = (job: Job) => {
+  setEditingId(job.id);
+  setEditData(job);
+};
 
   return (
     <div style={{ padding: 20 }}>
@@ -78,7 +120,9 @@ export default function Page() {
             const isEditing = editingId === job.id;
 
             return (
-              <tr key={job.id}>
+              <tr key={job.id}style={{
+                    backgroundColor: isExpiredRow(job) ? "#2b2b" : "white",color:"#2b2b2b"
+                  }}>
                 <td>
                   {isEditing ? (
                     <input
@@ -169,14 +213,11 @@ export default function Page() {
                     job.interview
                   )}
                 </td>
-
                 <td>
-                  {isEditing ? (
-                    <button onClick={saveEdit}>保存</button>
+                  {editingId === job.id ? (
+                    <button onClick={handleSave}>保存</button>
                   ) : (
-                    <button onClick={() => startEdit(job)}>
-                      編集
-                    </button>
+                    <button onClick={() => handleEdit(job)}>編集</button>
                   )}
                 </td>
               </tr>
