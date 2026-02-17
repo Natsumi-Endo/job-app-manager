@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import "./table.css";
 
 type Job = {
   id: number;
@@ -34,18 +35,6 @@ export default function Page() {
     setJobs([...jobs, newJob]);
     setEditingId(newJob.id);
     setEditData(newJob);
-  };
-
-  const startEdit = (job: Job) => {
-    setEditingId(job.id);
-    setEditData({ ...job });
-  };
-
-  const saveEdit = () => {
-    if (!editData) return;
-    setJobs(jobs.map((j) => (j.id === editData.id ? editData : j)));
-    setEditingId(null);
-    setEditData(null);
   };
 
 const handleChange = (field: keyof Job, value: string) => {
