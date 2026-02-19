@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect } from "react";
+import { supabase } from "../../lib/supabase"
 import "./table.css";
 
 type Job = {
@@ -66,7 +68,7 @@ const isExpiredRow = (job: Job) => {
   return today > dead;
 };
 
-const handleSave = () => {
+const handleSave = async () => {
   if (!editData) return;
 
   setJobs(prev =>
@@ -77,12 +79,44 @@ const handleSave = () => {
 
   setEditingId(null);
   setEditData(null);
+  await saveJob(editData);
 };
 
 const handleEdit = (job: Job) => {
   setEditingId(job.id);
   setEditData(job);
 };
+
+const saveJob = async (job: Job) => {
+  const payload = {
+    ...job,
+    date: job.date || null,
+    dead: job.dead || null,
+    interview: job.interview || null,
+  };
+
+  const { error } = await supabase
+    .from("jobs")
+    .upsert(payload);
+
+  if (error) {
+    console.error(error);
+    alert("保存失敗");
+  }
+};
+
+const loadJobs = async () => {
+  const { data, error } = await supabase
+    .from("jobs")
+    .select("*")
+    .order("date", { ascending: false });
+
+  if (data) setJobs(data);
+};
+
+useEffect(() => {
+  loadJobs();
+}, []);
 
   return (
     <div style={{ padding: 20 }}>
