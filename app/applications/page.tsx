@@ -118,6 +118,22 @@ useEffect(() => {
   loadJobs();
 }, []);
 
+const handleDelete = async (id: number) => {
+  // 画面上は先に更新しておく
+  setJobs(jobs.filter(job => job.id !== id));
+
+  // Supabase削除
+  const { error } = await supabase
+    .from("jobs")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error(error);
+    alert("削除失敗");
+  }
+};
+
   return (
     <div style={{ padding: 20 }}>
       <h1>応募案件一覧</h1>
@@ -240,7 +256,10 @@ useEffect(() => {
                   {editingId === job.id ? (
                     <button onClick={handleSave}>保存</button>
                   ) : (
-                    <button onClick={() => handleEdit(job)}>編集</button>
+                    <div>
+                      <button onClick={() => handleEdit(job)}>編集</button>
+                      <button onClick={() => handleDelete(job.id)}>削除</button>
+                    </div>
                   )}
                 </td>
               </tr>
