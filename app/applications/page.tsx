@@ -88,21 +88,50 @@ const handleEdit = (job: Job) => {
 };
 
 const saveJob = async (job: Job) => {
-  const payload = {
-    ...job,
-    date: job.date || null,
-    dead: job.dead || null,
-    interview: job.interview || null,
-  };
+  if (job.id) {
+    // 更新
+    const { error } = await supabase
+      .from("jobs")
+      .update({
+        date: job.date || null,
+        dead: job.dead || null,
+        category: job.category,
+        memo: job.memo,
+        url: job.url,
+        note: job.note,
+        interview: job.interview || null,
+      })
+      .eq("id", job.id);
 
-  const { error } = await supabase
-    .from("jobs")
-    .upsert(payload);
+    if (error) {
+      console.error(error);
+      alert("更新失敗");
+      return;
+    }
+  } else {
+    // 新規
+    const { error } = await supabase.from("jobs").insert([
+      {
+        date: job.date || null,
+        dead: job.dead || null,
+        category: job.category,
+        memo: job.memo,
+        url: job.url,
+        note: job.note,
+        interview: job.interview || null,
+      },
+    ]);
 
-  if (error) {
-    console.error(error);
-    alert("保存失敗");
+    if (error) {
+      console.error(error);
+      alert("保存失敗");
+      return;
+    }
   }
+
+  await loadJobs();
+  setEditingId(null);
+  setEditData(null);
 };
 
 const loadJobs = async () => {
